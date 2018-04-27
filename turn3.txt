@@ -1,0 +1,152 @@
+
+#include <Servo.h>
+
+Servo right_motor;
+Servo left_motor;
+
+int turn_th=200; //turn threshold
+char sen_ary[6];
+
+String s1, s2, s3, s4, s5;
+String s;
+
+int sen_val = 0;
+
+
+int left_motor_fs = 180; //left motor inte forward speed
+int left_motor_rs = 0; //left motor nte revers speed
+int right_motor_fs = 0; //right motor nte forward speed
+int right_motor_rs = 180; //right motor nte revers speed
+
+
+
+
+
+
+void setup()
+{
+  Serial.begin(9600);
+
+  
+right_motor.attach(10);
+  left_motor.attach(11);
+
+  
+
+  pinMode(A0, INPUT);
+  pinMode(A1, INPUT);
+  pinMode(A2, INPUT);
+  pinMode(A3, INPUT);
+  pinMode(A4, INPUT);
+  pinMode(A5, INPUT);
+}
+
+
+void forward()
+{
+
+  right_motor.write(right_motor_fs);
+  left_motor.write(left_motor_fs);
+
+}
+
+void backward()
+{
+  right_motor.write(right_motor_rs);
+  left_motor.write(left_motor_rs);
+}
+
+void left()
+{
+  right_motor.write(right_motor_fs);
+  left_motor.write(left_motor_rs);
+}
+
+void right()
+{
+  right_motor.write(right_motor_rs);
+  left_motor.write(left_motor_fs);
+}
+
+
+void stp()
+{
+  right_motor.write(90);
+  left_motor.write(90);
+}
+
+
+
+
+
+
+void sen_read()
+{
+  String s1 = String(digitalRead(A0), BIN);
+  String s2 = String(digitalRead(A1), BIN);
+  String s3 = String(digitalRead(A2), BIN);
+  String s4 = String(digitalRead(A3), BIN);
+  String s5 = String(digitalRead(A4), BIN);
+  String s = s1 + s2 + s3 + s4 + s5;
+
+  sen_val = s.toInt();
+  //Serial.println(sen_val);
+  s.toCharArray(sen_ary, 6);
+  //Serial.println(sen_ary);
+
+
+}
+
+
+
+
+void loop()
+{
+right_t();
+}
+
+
+
+void right_t()
+{
+  for(int i=0;i<turn_th;i++)
+  {
+  sen_read();
+  Serial.println(sen_ary);
+
+  if (sen_ary[4] == '0' || sen_ary[3] == '0')
+  {
+    right();
+
+  }
+
+  else
+  {
+    forward();
+
+  }
+  }
+  
+  stp();
+
+}
+void left_t()
+{
+  for(int j=0;j<turn_th;j++)
+  {
+  sen_read();
+  Serial.println(sen_ary);
+
+  if (sen_ary[0] == '0' || sen_ary[1] == '0')
+  {
+    left();
+  }
+
+  else
+  {
+    forward();
+
+  }
+}
+stp();
+}
