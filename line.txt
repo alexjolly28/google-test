@@ -1,0 +1,38 @@
+char sen_ary[6];
+int sen_val = 0;
+
+String s1, s2, s3, s4, s5;
+String s;
+
+void setup()
+{
+ 
+ Serial.begin(9600);
+
+  pinMode(A0, INPUT);//s1
+  pinMode(A1, INPUT);//s2
+  pinMode(A2, INPUT);//s3
+  pinMode(A3, INPUT);//s4
+  pinMode(A4, INPUT);//s5
+}
+
+void sen_read()
+{
+  String s1 = String(digitalRead(A0), BIN);
+  String s2 = String(digitalRead(A1), BIN);
+  String s3 = String(digitalRead(A2), BIN);
+  String s4 = String(digitalRead(A3), BIN);
+  String s5 = String(digitalRead(A4), BIN);
+  String s = s1 + s2 + s3 + s4 + s5;
+
+  sen_val = s.toInt();
+  //Serial.println(sen_val);
+  s.toCharArray(sen_ary, 6);
+  Serial.println(sen_ary);
+}
+
+void loop()
+{
+  sen_read();
+}
+  
