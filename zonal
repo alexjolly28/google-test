@@ -1,0 +1,436 @@
+#include <Servo.h>
+
+Servo right_motor;
+Servo left_motor;
+char sen_ary[6];
+
+int turn_th = 200; //turn threshold
+
+
+String s1, s2, s3, s4, s5;
+String s;
+
+int obj = 1;
+
+int sen_val = 0;
+int fun = 1;
+int dis = 0; //ultrasonic A5
+int dis_th = 15; //distance thresshold
+
+int left_motor_fs = 180; //left motor inte forward speed
+int left_motor_rs = 0; //left motor nte revers speed
+int right_motor_fs = 0; //right motor nte forward speed
+int right_motor_rs = 180; //right motor nte revers speed
+
+int trun = 500; //90 degree turn dealy
+
+int sens[5];
+int lm = 0; //left most
+int rm = 0; //right most
+int cros = 0; //cross jun
+
+void setup()
+{
+  right_motor.attach(10);
+  left_motor.attach(11);
+  pinMode(A0, INPUT);//s1
+  pinMode(A1, INPUT);//s2
+  pinMode(A2, INPUT);//s3
+  pinMode(A3, INPUT);//s4
+  pinMode(A4, INPUT);//s5
+  pinMode(A5, INPUT);//ultrasonic
+  Serial.begin(9600);
+  //  delay(2000);//for starting
+}
+
+
+
+
+
+
+
+void forward()
+{
+
+  right_motor.write(right_motor_fs);
+  left_motor.write(left_motor_fs);
+
+}
+
+void backward()
+{
+  right_motor.write(right_motor_rs);
+  left_motor.write(left_motor_rs);
+}
+
+void left()
+{
+  right_motor.write(right_motor_fs);
+  left_motor.write(left_motor_rs);
+}
+
+void right()
+{
+  right_motor.write(right_motor_rs);
+  left_motor.write(left_motor_fs);
+}
+
+
+void stp()
+{
+  right_motor.write(90);
+  left_motor.write(90);
+}
+
+
+
+void right_t()
+{
+  for (int i = 0; i < turn_th; i++)
+  {
+    sen_read();
+    Serial.println(sen_ary);
+
+    if (sen_ary[4] == '0' || sen_ary[3] == '0')
+    {
+      right();
+
+    }
+
+    else
+    {
+      forward();
+
+    }
+  }
+
+  stp();
+
+}
+void left_t()
+{
+  for (int j = 0; j < turn_th; j++)
+  {
+    sen_read();
+    Serial.println(sen_ary);
+
+    if (sen_ary[0] == '0' || sen_ary[1] == '0')
+    {
+
+      left();
+    }
+
+    else
+    {
+      forward();
+
+    }
+  }
+  stp();
+}
+
+
+
+void line_follower_f()  //forward line follower
+{
+  sen_read();
+
+  Serial.println(sen_ary);
+
+  if (strcmp(sen_ary, "11011") == 0)
+  {
+    Serial.println("Forward");
+    forward();
+  }
+
+  else if (strcmp(sen_ary, "10111") == 0 || strcmp(sen_ary, "10111") == 0)
+  {
+    Serial.println("moove to left");
+    left();
+  }
+
+  else if (strcmp(sen_ary, "11101") == 0 || strcmp(sen_ary, "11001") == 0)
+  {
+    Serial.println("moove to right");
+    right();
+  }
+
+  else if (strcmp(sen_ary, "00011") == 0 || strcmp(sen_ary, "00111") == 0 || strcmp(sen_ary, "01011") == 0)
+  {
+    stp();
+
+    Serial.println("left most");
+    lm = 1;
+  }
+  else if (strcmp(sen_ary, "11000") == 0 || strcmp(sen_ary, "11100") == 0 || strcmp(sen_ary, "11010") == 0 )
+  {
+    stp();
+
+    rm = 1;
+    Serial.println("right most");
+
+  }
+  else if (strcmp(sen_ary, "00000") == 0 || strcmp(sen_ary, "01010") == 0 || strcmp(sen_ary, "01000") == 0 || strcmp(sen_ary, "00010") == 0 || strcmp(sen_ary, "00100") == 0)
+  {
+    stp();
+
+    cros = 1;
+    Serial.println(" cross");
+
+  }
+
+  else
+  {
+    stp();
+
+    Serial.println("stop");
+  }
+}
+
+
+
+
+void line_follower_r()
+{
+
+  sen_read();
+  Serial.println(sen_ary);
+  if (strcmp(sen_ary, "11011") == 0)
+  {
+    Serial.println("backward");
+    backward();
+  }
+
+  else if (strcmp(sen_ary, "10111") == 0 || strcmp(sen_ary, "10011") == 0)
+  {
+    Serial.println("moove to right");
+    right();
+  }
+  else if (strcmp(sen_ary, "11101") == 0 || strcmp(sen_ary, "11001") == 0)
+  {
+    Serial.println("moove to left");
+    left();
+  }
+
+  else if (strcmp(sen_ary, "00011") == 0 || strcmp(sen_ary, "00111") == 0 || strcmp(sen_ary, "01011") == 0)
+  {
+    stp();
+
+    Serial.println("left most");
+    lm = 1;
+  }
+  else if (strcmp(sen_ary, "11000") == 0 || strcmp(sen_ary, "11100") == 0 || strcmp(sen_ary, "11010") == 0 )
+  {
+    stp();
+
+    rm = 1;
+    Serial.println("right most");
+
+  }
+  else if (strcmp(sen_ary, "00000") == 0 || strcmp(sen_ary, "01010") == 0 || strcmp(sen_ary, "01000") == 0 || strcmp(sen_ary, "00010") == 0 || strcmp(sen_ary, "00100") == 0)
+  {
+    stp();
+
+    cros = 1;
+    Serial.println(" cross");
+
+  }
+
+  else
+  {
+    stp();
+
+    Serial.println("stop");
+  }
+}
+
+
+
+void sen_read()
+{
+  String s1 = String(digitalRead(A0), BIN);
+  String s2 = String(digitalRead(A1), BIN);
+  String s3 = String(digitalRead(A2), BIN);
+  String s4 = String(digitalRead(A3), BIN);
+  String s5 = String(digitalRead(A4), BIN);
+  String s = s1 + s2 + s3 + s4 + s5;
+
+  sen_val = s.toInt();
+  //Serial.println(sen_val);
+  s.toCharArray(sen_ary, 6);
+  //Serial.println(sen_ary);
+
+
+}
+
+void pick()
+{
+  //code for pick
+}
+
+void drop()
+{
+  //code for drop
+}
+
+
+
+void loop()
+{
+
+  switch (fun)
+  {
+    case 1:
+      {
+        while (rm == 0)
+        {
+          line_follower_f();
+        }
+        stp();
+        delay(100);
+        if (rm == 1)
+        {
+          rm = 0;
+          forward();
+          delay(300);
+          stp();
+          fun = 2;
+        }
+
+      } break;
+
+    case 2:
+      {
+        while (analogRead(A5) > dis_th)
+
+        {
+          line_follower_f();
+
+        }
+        stp();
+        delay(100);
+        if (analogRead(A5) <= dis_th)
+        {
+          stp();
+          forward();
+          delay(200);
+          stp();
+
+          delay(100);
+          pick();
+          backward();
+          delay(200);
+          stp();
+          fun = 3;
+
+        }
+      } break;
+
+    case 3:
+      {
+        while (rm == 0)
+        {
+          line_follower_r();
+
+        }
+
+        stp();
+        delay(100);
+
+        if (rm == 1)
+        {
+          rm = 0;
+          stp();
+          right_t();
+          stp();
+          fun = 4;
+
+        }
+
+      } break;
+
+    case 4:
+      {
+        while (lm == 0)
+        {
+          line_follower_f();
+        }
+        stp();
+        if (lm == 1)
+        {
+          forward();
+          delay(300);
+          lm = 0;
+          fun = 5;
+        }
+
+      } break;
+
+
+    case 5:
+      {
+        while (analogRead(A5) > dis_th)
+        {
+          line_follower_f();
+        }
+        stp();
+        delay(100);
+        if (analogRead(A5) <= dis_th)
+        {
+          stp();
+          delay(200);
+          forward();
+          delay(300);
+          stp();
+          delay(100);
+          drop();
+          backward();
+          delay(300);
+          stp();
+          fun = 6;
+          lm = 0;
+        }
+
+      } break;
+
+    case 6:
+      {
+        while (lm == 0)
+        {
+          line_follower_r();
+        }
+        stp();
+        delay(100);
+        if (lm == 1)
+        {
+          lm = 0;
+          stp();
+          delay(100);
+          left_t();
+          stp();
+          fun = 1;
+          obj++;
+
+          if (obj > 4)
+          {
+            fun = 7;
+          }
+        }
+
+      } break;
+
+    case 7:
+      {
+        stp();
+      } break;
+
+    default:
+      {
+        stp();
+
+      }
+
+
+  }
+
+}
